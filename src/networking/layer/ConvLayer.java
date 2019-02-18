@@ -27,7 +27,7 @@ public class ConvLayer extends Layer {
     private void connectNeurons(ConvFilterArguments args) {
         ConvFilter[] convFilter = new ConvFilter[args.num];
         for (int i = 0;i<convFilter.length;i++) {
-            convFilter[i] = new ConvFilter(args.size, args.num);
+            convFilter[i] = new ConvFilter(args.size, previous.neuronVolume.dimensions[2]);
         }
 
         for (int i=0;i<neuronVolume.dimensions[0];i++) {

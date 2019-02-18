@@ -22,7 +22,7 @@ public class NeuralNetworking extends PApplet {
 
     private static void testSetup() {
         //myNetwork = feedForwardModel();
-        myNetwork = convModel();
+        myNetwork = deepConvModel();
         System.out.println("Neurons connected");
 
         Interface.loadData();
@@ -37,17 +37,18 @@ public class NeuralNetworking extends PApplet {
         public void run() {
             System.out.println("Overall accuracy");
             System.out.println(myNetwork.getAccuracy(FloatVolume.getArray(testImages), FloatVolume.getArray(testLabels)));
-            for (int o=0;o<1;o++) {
+            float toReach = 4 * trainImages.length;
+            for (int o=0;o<4;o++) {
                 System.out.println("Training step: " + o);
                 myNetwork.forward(new FloatVolume(trainImages[0]));
                 System.out.println("Cost: "+myNetwork.calculateCost(new FloatVolume(trainLabels[0])));
-                for (int i = 0; i < trainImages.length/2; i++) {
-                    if (i%500==0) {
-                        System.out.println((float)i/trainImages.length*200+"%");
+                for (int i = 0; i < trainImages.length; i++) {
+                    if (i%1000==0) {
+                        System.out.println((trainImages.length*o+i)/toReach*100+"%");
                         myNetwork.forward(new FloatVolume(testImages[0]));
                         System.out.println("Cost: "+myNetwork.calculateCost(new FloatVolume(testLabels[0])));
                     }
-                    myNetwork.train(new FloatVolume(trainImages[i%100]), new FloatVolume(trainLabels[i%100]));
+                    myNetwork.train(new FloatVolume(trainImages[i]), new FloatVolume(trainLabels[i]));
                 }
                 System.out.println("Overall accuracy");
                 System.out.println(myNetwork.getAccuracy(FloatVolume.getArray(testImages), FloatVolume.getArray(testLabels)));
@@ -82,6 +83,24 @@ public class NeuralNetworking extends PApplet {
         myNetwork.addLayer(cl);
 
         myNetwork.addLayer(new MaxPoolLayer(3, myNetwork.getLast()));
+
+        myNetwork.addLayer(new FeedForwardLayer(myNetwork.getLast(), 10));
+        return myNetwork;
+    }
+    public static Network deepConvModel() {
+        Network myNetwork = new Network();
+
+        FeedForwardLayer first = new FeedForwardLayer(196);
+        first.neuronVolume.dimensions = new int[]{14, 14, 1};
+        myNetwork.addLayer(first);
+        ConvLayer cl = new ConvLayer(3, 1, 10, myNetwork.getLast());
+        myNetwork.addLayer(cl);
+
+        myNetwork.addLayer(new MaxPoolLayer(2, myNetwork.getLast()));
+
+        myNetwork.addLayer(new ConvLayer(3,1,10, myNetwork.getLast()));
+
+        myNetwork.addLayer(new MaxPoolLayer(2, myNetwork.getLast()));
 
         myNetwork.addLayer(new FeedForwardLayer(myNetwork.getLast(), 10));
         return myNetwork;
