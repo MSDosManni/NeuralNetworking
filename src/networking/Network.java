@@ -2,7 +2,7 @@ package networking;
 
 import networking.layer.Layer;
 import networking.neuron.Neuron;
-import networking.structure.FloatVolume;
+import networking.structure.DoubleVolume;
 import networking.structure.Volume;
 
 import java.util.ArrayList;
@@ -10,7 +10,7 @@ import java.util.List;
 
 public class Network {
     List<Layer> layers = new ArrayList<Layer>();
-    public float learningRate = 0.003f;
+    public double learningRate = 0.03f;
 
     public void addLayer(Layer l) {
         layers.add(l);
@@ -28,7 +28,7 @@ public class Network {
         }
     }
 
-    public void train(FloatVolume input, FloatVolume labels) {
+    public void train(DoubleVolume input, DoubleVolume labels) {
         forward(input);
 
         for (int i=1;i<layers.size();i++) layers.get(i).zeroLoss();
@@ -41,14 +41,14 @@ public class Network {
         for (int i=1;i<layers.size();i++) layers.get(i).applyChange(learningRate);
         //layers.get(1).applyChange(learningRate);
     }
-    public void forward(FloatVolume input) {
+    public void forward(DoubleVolume input) {
         setInput(input);
         for (int i=1;i<layers.size();i++) {
             layers.get(i).forward();
         }
     }
 
-    private void setLastLayerLoss(FloatVolume fv) {
+    private void setLastLayerLoss(DoubleVolume fv) {
         if (layers.size()>0) {
             Volume<Neuron> volToSet = layers.get(layers.size()-1).neuronVolume;
             for (int i=0;i<volToSet.values.length;i++) {
@@ -56,9 +56,9 @@ public class Network {
             }
         }
     }
-    private FloatVolume calculateLoss(FloatVolume trueLabels) {
-        /*FloatVolume ret = new FloatVolume(trueLabels);
-        FloatVolume output = getOutput();
+    private DoubleVolume calculateLoss(DoubleVolume trueLabels) {
+        /*DoubleVolume ret = new DoubleVolume(trueLabels);
+        DoubleVolume output = getOutput();
         for (int i=0;i<ret.values.length;i++) {
             ret.values[i] = 2 * (output.values[i] - trueLabels.values[i]);
         }
@@ -67,16 +67,16 @@ public class Network {
         return pointwiseSub(softmax(getOutput()),  trueLabels.values);
     }
 
-    public float calculateCost(FloatVolume trueLabels) {
-        float sum = 0;
-        FloatVolume out = getOutput();
+    public double calculateCost(DoubleVolume trueLabels) {
+        double sum = 0;
+        DoubleVolume out = getOutput();
         for (int i=0;i<trueLabels.values.length;i++) {
             sum += Math.pow(trueLabels.values[i] - out.values[i], 2);
         }
         return sum;
     }
 
-    private void setInput(FloatVolume fv) {
+    private void setInput(DoubleVolume fv) {
         if (layers.size()>0) {
             Volume<Neuron> volToSet = layers.get(0).neuronVolume;
             for (int i=0;i<volToSet.values.length;i++) {
@@ -85,10 +85,10 @@ public class Network {
         }
     }
 
-    public FloatVolume getOutput() {
+    public DoubleVolume getOutput() {
         if (layers.size()>0) {
             Volume<Neuron> volToGet = layers.get(layers.size()-1).neuronVolume;
-            FloatVolume ret = new FloatVolume(volToGet);
+            DoubleVolume ret = new DoubleVolume(volToGet);
             for (int i=0;i<volToGet.values.length;i++) {
                 ret.values[i] = volToGet.values[i].value;
             }
@@ -97,9 +97,9 @@ public class Network {
         return null;
     }
 
-    public int getMaxIndex(FloatVolume fv) {
+    public int getMaxIndex(DoubleVolume fv) {
         int ret = -1;
-        float maxVal = Float.MIN_VALUE;
+        double maxVal = Double.MIN_VALUE;
         for (int i=0;i<fv.values.length;i++) {
             if (fv.values[i] > maxVal) {
                 maxVal = fv.values[i];
@@ -109,21 +109,21 @@ public class Network {
         return ret;
     }
 
-    public float getAccuracy(FloatVolume[] fvs, FloatVolume[] labels) {
+    public double getAccuracy(DoubleVolume[] fvs, DoubleVolume[] labels) {
         int correctOnes = 0;
         for (int i=0;i<fvs.length;i++) {
             forward(fvs[i]);
             if (getMaxIndex(getOutput()) == getMaxIndex(labels[i])) correctOnes ++;
         }
-        return (float) correctOnes / fvs.length;
+        return (double) correctOnes / fvs.length;
     }
 
 
-    private float[] softmax(FloatVolume in) {
-        float _base = 0;
-        float[] ret = new float[in.values.length];
+    private double[] softmax(DoubleVolume in) {
+        double _base = 0;
+        double[] ret = new double[in.values.length];
         for (int i=0;i<in.values.length;i++) {
-            ret[i] = (float) Math.exp(in.values[i]);
+            ret[i] = (double) Math.exp(in.values[i]);
             _base+=ret[i];
         }
         for (int i=0;i<ret.length;i++) {
@@ -131,8 +131,8 @@ public class Network {
         }
         return ret;
     }
-    private FloatVolume pointwiseSub(float[] a1, Float[] a2) {
-        FloatVolume ret = new FloatVolume(a1.length);
+    private DoubleVolume pointwiseSub(double[] a1, Double[] a2) {
+        DoubleVolume ret = new DoubleVolume(a1.length);
         for (int i=0;i<a1.length;i++) {
             ret.values[i] = a1[i]-a2[i];
         }

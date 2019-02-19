@@ -10,7 +10,7 @@ public abstract class Filter {
 
     public abstract void backPropagate();
 
-    public abstract void applyChange(float learningRate);
+    public abstract void applyChange(double learningRate);
 
     public void zeroLoss() {}
 }

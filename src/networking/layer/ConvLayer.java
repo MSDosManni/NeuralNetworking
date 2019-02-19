@@ -34,7 +34,7 @@ public class ConvLayer extends Layer {
             for (int o=0;o<neuronVolume.dimensions[1];o++) {
 
                 for (int u=0;u<neuronVolume.dimensions[2];u++) {
-                    Neuron toSet = new Neuron(true);
+                    Neuron toSet = new Neuron();
                     neuronVolume.values[neuronVolume.getIndex((new int[]{i,o,u}))] = toSet;
                     toSet.localConnection = previous.neuronVolume.getSubVolume(new int[]{i,o,0}, new int[]{args.size, args.size, previous.neuronVolume.dimensions[2]});
                     toSet.filter = convFilter[u];

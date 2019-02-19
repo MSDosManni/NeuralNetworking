@@ -1,10 +1,13 @@
 package networking;
 
+import networking.layer.ActivationLayer;
 import networking.layer.ConvLayer;
 import networking.layer.FeedForwardLayer;
 import networking.layer.MaxPoolLayer;
 import networking.neuron.Neuron;
-import networking.structure.FloatVolume;
+import networking.neuron.ReLuActivation;
+import networking.neuron.SigmoidActivation;
+import networking.structure.DoubleVolume;
 import networking.structure.Interface;
 import networking.structure.Volume;
 import processing.core.*;
@@ -22,7 +25,11 @@ public class NeuralNetworking extends PApplet {
 
     private static void testSetup() {
         //myNetwork = feedForwardModel();
+        //myNetwork = convModel();
         myNetwork = deepConvModel();
+
+        myNetwork.learningRate = 0.0005f;
+
         System.out.println("Neurons connected");
 
         Interface.loadData();
@@ -36,24 +43,24 @@ public class NeuralNetworking extends PApplet {
         (new Thread() {
         public void run() {
             System.out.println("Overall accuracy");
-            System.out.println(myNetwork.getAccuracy(FloatVolume.getArray(testImages), FloatVolume.getArray(testLabels)));
-            float toReach = 4 * trainImages.length;
-            for (int o=0;o<4;o++) {
+            System.out.println(myNetwork.getAccuracy(DoubleVolume.getArray(testImages), DoubleVolume.getArray(testLabels)));
+            double toReach = 20 * trainImages.length;
+            for (int o=0;o<20;o++) {
                 System.out.println("Training step: " + o);
-                myNetwork.forward(new FloatVolume(trainImages[0]));
-                System.out.println("Cost: "+myNetwork.calculateCost(new FloatVolume(trainLabels[0])));
+                myNetwork.forward(new DoubleVolume(trainImages[0]));
+                System.out.println("Cost: "+myNetwork.calculateCost(new DoubleVolume(trainLabels[0])));
                 for (int i = 0; i < trainImages.length; i++) {
                     if (i%1000==0) {
                         System.out.println((trainImages.length*o+i)/toReach*100+"%");
-                        myNetwork.forward(new FloatVolume(testImages[0]));
-                        System.out.println("Cost: "+myNetwork.calculateCost(new FloatVolume(testLabels[0])));
+                        myNetwork.forward(new DoubleVolume(trainImages[0]));
+                        System.out.println("Cost: "+myNetwork.calculateCost(new DoubleVolume(trainLabels[0])));
                     }
-                    myNetwork.train(new FloatVolume(trainImages[i]), new FloatVolume(trainLabels[i]));
+                    myNetwork.train(new DoubleVolume(trainImages[i]), new DoubleVolume(trainLabels[i]));
                 }
                 System.out.println("Overall accuracy");
-                System.out.println(myNetwork.getAccuracy(FloatVolume.getArray(testImages), FloatVolume.getArray(testLabels)));
-                myNetwork.forward(new FloatVolume(trainImages[0]));
-                System.out.println("Cost: "+myNetwork.calculateCost(new FloatVolume(trainLabels[0])));
+                System.out.println(myNetwork.getAccuracy(DoubleVolume.getArray(testImages), DoubleVolume.getArray(testLabels)));
+                myNetwork.forward(new DoubleVolume(trainImages[0]));
+                System.out.println("Cost: "+myNetwork.calculateCost(new DoubleVolume(trainLabels[0])));
             }
         }
 
@@ -68,9 +75,16 @@ public class NeuralNetworking extends PApplet {
     public static Network feedForwardModel() {
         Network myNetwork = new Network();
         myNetwork.addLayer(new FeedForwardLayer(196));
+        myNetwork.getLast().setDimensions(new int[] {14,14,1});
         myNetwork.addLayer(new FeedForwardLayer(myNetwork.getLast(), 32));
+        myNetwork.addLayer(new ActivationLayer(myNetwork.getLast()));
+
         myNetwork.addLayer(new FeedForwardLayer(myNetwork.getLast(), 32));
+        myNetwork.addLayer(new ActivationLayer(myNetwork.getLast()));
+
         myNetwork.addLayer(new FeedForwardLayer(myNetwork.getLast(), 10));
+        myNetwork.addLayer(new ActivationLayer(myNetwork.getLast(), new ReLuActivation()));
+
         return myNetwork;
     }
 
@@ -81,10 +95,12 @@ public class NeuralNetworking extends PApplet {
         myNetwork.addLayer(first);
         ConvLayer cl = new ConvLayer(4, 1, 15, myNetwork.getLast());
         myNetwork.addLayer(cl);
-
+        myNetwork.addLayer(new ActivationLayer(myNetwork.getLast()));
         myNetwork.addLayer(new MaxPoolLayer(3, myNetwork.getLast()));
 
         myNetwork.addLayer(new FeedForwardLayer(myNetwork.getLast(), 10));
+        myNetwork.addLayer(new ActivationLayer(myNetwork.getLast(), new SigmoidActivation()));
+
         return myNetwork;
     }
     public static Network deepConvModel() {
@@ -93,16 +109,19 @@ public class NeuralNetworking extends PApplet {
         FeedForwardLayer first = new FeedForwardLayer(196);
         first.neuronVolume.dimensions = new int[]{14, 14, 1};
         myNetwork.addLayer(first);
-        ConvLayer cl = new ConvLayer(3, 1, 10, myNetwork.getLast());
+        ConvLayer cl = new ConvLayer(5, 1, 15, myNetwork.getLast());
         myNetwork.addLayer(cl);
+        myNetwork.addLayer(new ActivationLayer(myNetwork.getLast()));
 
         myNetwork.addLayer(new MaxPoolLayer(2, myNetwork.getLast()));
 
-        myNetwork.addLayer(new ConvLayer(3,1,10, myNetwork.getLast()));
+        myNetwork.addLayer(new ConvLayer(3,1,15, myNetwork.getLast()));
+        myNetwork.addLayer(new ActivationLayer(myNetwork.getLast()));
 
-        myNetwork.addLayer(new MaxPoolLayer(2, myNetwork.getLast()));
+        //myNetwork.addLayer(new MaxPoolLayer(2, myNetwork.getLast()));
 
         myNetwork.addLayer(new FeedForwardLayer(myNetwork.getLast(), 10));
+        myNetwork.addLayer(new ActivationLayer(myNetwork.getLast(), new SigmoidActivation()));
         return myNetwork;
     }
 
@@ -120,13 +139,13 @@ public class NeuralNetworking extends PApplet {
         text("Out: "+myNetwork.getMaxIndex(myNetwork.getOutput()),100,350);
 
         Volume<Neuron> curVol = myNetwork.layers.get(currentLayer).neuronVolume;
-        float xStart = width/2f - curVol.dimensions[0] / 2 * 10;
-        float yStart = height/2f - curVol.dimensions[1] / 2 * 10;
+        double xStart = width/2f - curVol.dimensions[0] / 2 * 10;
+        double yStart = height/2f - curVol.dimensions[1] / 2 * 10;
         for (int i=0;i<curVol.dimensions[0];i++) {
             for (int o=0;o<curVol.dimensions[1];o++) {
-                float val = curVol.get(new int[] {i, o, currentZ}).value;
-                fill(255 - val * 255);
-                rect(xStart + 10*i, yStart + 10*o, 10, 10);
+                double val = curVol.get(new int[] {i, o, currentZ}).value;
+                fill((float) (255 - val * 255));
+                rect((float)xStart + 10*i, (float)yStart + 10*o, 10, 10);
             }
         }
     }

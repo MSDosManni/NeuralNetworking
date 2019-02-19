@@ -26,9 +26,13 @@ public abstract class Layer {
             n.zeroLoss();
         }
     }
-    public void applyChange(float learningRate) {
+    public void applyChange(double learningRate) {
         for (Neuron n: neuronVolume.values) {
             n.applyChange(learningRate);
         }
+    }
+
+    public void setDimensions(int[] dims) {
+        neuronVolume.dimensions = dims;
     }
 }

@@ -14,7 +14,7 @@ public class MaxPoolFilter extends Filter {
 
     public void applyFilter() {
         Volume<Neuron> previous = attachedNeuron.localConnection;
-        float maxVal = Float.MIN_VALUE;
+        double maxVal = Double.MIN_VALUE;
         for (int i=0;i<previous.values.length;i++) {
             if (previous.values[i].value > maxVal) {
                 maxVal = previous.values[i].value;
@@ -39,5 +39,5 @@ public class MaxPoolFilter extends Filter {
 
     }
 
-    public void applyChange(float learningRate) {}
+    public void applyChange(double learningRate) {}
 }

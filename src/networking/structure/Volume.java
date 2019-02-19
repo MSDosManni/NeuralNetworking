@@ -60,7 +60,14 @@ public class Volume <T> {
         }
         return ret;
     }
+    public Volume<T> copy() {
+        Volume<T> ret = new Volume(myClass);
+        ret.values = (T[]) java.lang.reflect.Array.newInstance(myClass, values.length);
 
+        ret.dimensions = new int[] {dimensions[0], dimensions[1], dimensions[2]};
+
+        return ret;
+    }
     public int[] addVec(int[] first, int[] second) {
         int[] ret = new int[first.length];
         for (int i=0;i<ret.length;i++) {

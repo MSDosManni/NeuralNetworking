@@ -12,7 +12,7 @@ public class FeedForwardLayer extends Layer  {
         neuronVolume.values = new Neuron[neuronNum];
 
         for (int i=0;i<neuronNum;i++) {
-            neuronVolume.values[i] = new Neuron(true);
+            neuronVolume.values[i] = new Neuron();
         }
     }
 
@@ -25,9 +25,10 @@ public class FeedForwardLayer extends Layer  {
             Neuron newNeuron = new Neuron(previous.neuronVolume);
             neuronVolume.values[i] = newNeuron;
             newNeuron.filter = new FeedForwardFilter(newNeuron);
-            newNeuron.useActivation = true;
         }
     }
+
+
 
 
 }
